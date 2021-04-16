@@ -33,7 +33,11 @@ define('PUBLICATION_MODE_ONLINETEXT', 2);
 
 define('PUBLICATION_APPROVAL_ALL', 0);
 define('PUBLICATION_APPROVAL_SINGLE', 1);
+
+define('PUBLICATION_EVENT_DEFAULT', 'publication_edefault');
+
 require_once($CFG->dirroot . '/mod/publication/mod_publication_allfiles_form.php');
+require_once($CFG->dirroot . '/calendar/lib.php');
 
 /**
  * publication class contains much logic used in mod_publication
@@ -1769,5 +1773,76 @@ class publication {
         $posthtml .= '<p>'.get_string('emailstudentsmailhtml', 'publication', $info).'</p>';
         $posthtml .= '</font><hr />';
         return $posthtml;
+    }
+
+    /**
+     * Creates an calendar event for a publication
+     */
+    public function add_calendar_event() {
+        global $DB;
+
+        $event = new stdClass();
+        $event->eventtype = PUBLICATION_EVENT_DEFAULT;
+        $event->type = CALENDAR_EVENT_TYPE_ACTION; // This will not only display the event in the calendar, but also in the block_myoverview
+        $event->name = $this->get_instance()->name;
+        $event->description = "";
+        $event->courseid = $this->course->id;
+        $event->groupid = 0;
+        $event->userid = 0;
+        $event->modulename = 'publication';
+        $event->instance = $this->get_instance()->id;
+        $event->timestart = $this->get_instance()->duedate;
+        $event->visible = instance_is_visible('publication', $this->instance);
+        $event->timeduration = 0;
+
+        $event = calendar_event::create($event);
+    
+        $this->instance->calendareventid = $event->id;
+
+        // Save the updated instance in the db
+        $DB->update_record('publication', $this->get_instance());
+    }
+
+    /**
+     * Updates a calendar event
+     */
+    public function update_calendar_event() {
+        global $DB;
+
+        $event = calendar_event::load($this->get_instance()->calendareventid);
+
+        // When the event doesn't exists but this method was called, delete the broken event from the publication.
+        if (!$event) {
+            return $this->delete_calendar_event();
+        }
+
+        // Update the necessary attributes of the event
+        $event->name = $this->get_instance()->name;
+        $event->timestart = $this->get_instance()->duedate;
+
+        $event->update($event);
+    }
+
+    /**
+     * Deletes an associated calendar event
+     */
+    public function delete_calendar_event() {
+        global $DB;
+
+        $instance = $this->get_instance();
+
+        if ($instance->calendareventid === null) {
+            return true; // The event has no event.
+        }
+
+        $event = calendar_event::load($instance->calendareventid);
+        if ($event !== null) {
+            $event->delete();
+        }
+        
+        $instance->calendareventid = null;
+        $instance->showincalendar = false;
+        
+        $DB->update_record('publication', $instance);
     }
 }

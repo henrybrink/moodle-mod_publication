@@ -206,6 +206,9 @@ class mod_publication_mod_form extends moodleform_mod {
         $mform->addElement('hidden', 'alwaysshowdescription', true);
         $mform->setType('alwaysshowdescription', PARAM_BOOL);
 
+        $mform->addElement('selectyesno', 'showincalendar', get_string('showincalendar', 'publication'));
+        $mform->setDefault('showincalendar', 1);
+
         $mform->addElement('header', 'notifications', get_string('notifications', 'publication'));
 
         $name = get_string('notifyteacher', 'publication');

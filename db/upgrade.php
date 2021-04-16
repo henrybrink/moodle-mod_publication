@@ -187,5 +187,25 @@ function xmldb_publication_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2019052100, 'publication');
     }
 
+    if ($oldversion < 2021041601) {
+        // Add the event_id field to a publication
+        $table = new xmldb_table('publication');
+        
+        $field = new xmldb_field('showincalendar', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'notifystudents');
+        
+        $field2 = new xmldb_field('calendareventid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'showincalendar');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        if (!$dbman->field_exists($table, $field2)) {
+            $dbman->add_field($table, $field2);
+        }
+
+        // Publication savepoint reached.
+        upgrade_mod_savepoint(true, 2021041601, 'publication');
+    }
+
     return true;
 }

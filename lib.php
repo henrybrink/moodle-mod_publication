@@ -57,6 +57,11 @@ function publication_add_instance($publication) {
     $context = context_module::instance($cm->id);
     $instance = new publication($cm, $course, $context);
 
+    // Add a calendar event when the publication has a dueDate
+    if ($instance->get_instance()->showincalendar == 1 && !isset($instance->get_instance()->calendareventid)) {
+        $instance->add_calendar_event();
+    }
+
     if ($instance->get_instance()->mode == PUBLICATION_MODE_IMPORT
             && !empty($instance->get_instance()->autoimport)) {
         // Fetch all files right now!
@@ -122,6 +127,16 @@ function publication_update_instance($publication) {
         $instance->importfiles();
     }
 
+    if (property_exists($instance->get_instance(), 'showincalendar') && $instance->get_instance()->showincalendar == 1) {
+        if (!property_exists($instance->get_instance(), 'calendareventid') || $instance->get_instance()->calendareventid === null) {
+            $instance->add_calendar_event();
+        } else {
+            $instance->update_calendar_event();
+        }
+    } else if (property_exists($instance->get_instance(), 'calendareventid') && $instance->get_instance()->calendareventid !== null) {
+        $instance->delete_calendar_event();
+    }
+
     return true;
 }
 
@@ -147,6 +162,11 @@ function publication_delete_instance($id) {
     $DB->delete_records('publication_file', ['publication' => $publication->id]);
 
     $result = true;
+
+    if (property_exists($publication, 'calendareventid') && $publication->calendareventid !== null) {
+        $DB->delete_records('events', ['event' => $publication->calendareventid]);
+    }
+
     if (!$DB->delete_records('publication', ['id' => $publication->id])) {
         $result = false;
     }

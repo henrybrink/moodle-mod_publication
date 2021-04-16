@@ -143,6 +143,9 @@ $string['warning_changetoobtainteacherapproval'] = 'After deactivating this sett
 $string['warning_changefromobtainstudentapproval'] = 'If you perform this change, only you can decide which files are visible to all students. The students are not asked for their approval. All files marked as approved will become visible to all students independent of the students\' decisions.';
 $string['warning_changetoobtainstudentapproval'] = 'If you perform this change, the students are asked for their approval for all files marked as visible. Files will only become visible after the students\' approval.';
 
+$string['showincalendar'] = 'Show in calendar';
+$string['showincalendar_help'] = 'This will add the due date of this folder to the course calendar.';
+
 // Strings from the File  mod_publication_grantextension_form.php.
 $string['extensionduedate'] = 'Extension due date';
 $string['extensionnotafterduedate'] = 'Extension date must be after the due date';
