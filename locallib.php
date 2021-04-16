@@ -34,7 +34,7 @@ define('PUBLICATION_MODE_ONLINETEXT', 2);
 define('PUBLICATION_APPROVAL_ALL', 0);
 define('PUBLICATION_APPROVAL_SINGLE', 1);
 
-define('PUBLICATION_EVENT_DEFAULT', 'publication_edefault');
+define('PUBLICATION_EVENT_DEFAULT', 'publication_default');
 
 require_once($CFG->dirroot . '/mod/publication/mod_publication_allfiles_form.php');
 require_once($CFG->dirroot . '/calendar/lib.php');
@@ -1792,6 +1792,7 @@ class publication {
         $event->modulename = 'publication';
         $event->instance = $this->get_instance()->id;
         $event->timestart = $this->get_instance()->duedate;
+        $event->timesort = $this->get_instance()->duedate;
         $event->visible = instance_is_visible('publication', $this->instance);
         $event->timeduration = 0;
 
@@ -1819,6 +1820,7 @@ class publication {
         // Update the necessary attributes of the event
         $event->name = $this->get_instance()->name;
         $event->timestart = $this->get_instance()->duedate;
+        $event->timesort = $this->get_instance()->duedate;
 
         $event->update($event);
     }

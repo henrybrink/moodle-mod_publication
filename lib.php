@@ -299,3 +299,40 @@ function mod_publication_pluginfile($course, $cm, context $context, $filearea, $
     // Wont be reached!
     return false;
 }
+
+/**
+ * Callback for the block_timeline to only display this publication
+ * when the user has nothing uploaded
+ */
+function mod_publication_core_calendar_provide_event_action(calendar_event $event, \core_calendar\action_factory $factory) {
+    global $CFG, $USER, $DB;
+
+    require_once ($CFG->dirroot . '/mod/publication/locallib.php');
+
+    // Get the instance via the method recommend in the docs.
+    $cm = get_fast_modinfo($event->courseid)->instances['publication'][$event->instance];
+    $instance = new publication($cm);
+
+    // Don't show the instance when the user cannot access the publication.
+    if ($instance->get_instance()->allowsubmissionsfromdate > time()) {
+        return null;
+    }
+
+    // Only show the publication when it's open.
+    if ($instance->is_open()) {
+        // Check whether the user has already uploaded one or more files
+        $files = $DB->count_records('publication_file', ['publication' => $instance->get_instance()->id, 'userid' => $USER->id]);
+
+        if ($files >= 1) {
+            return null;
+        }
+
+        // If not, the folder should be displayed in the block.
+        return $factory->create_instance(
+            get_string('add_uploads', 'publication'),
+            new \moodle_url('/mod/publication/view.php', ['id' => $cm->id]),
+            1,
+            true
+        );
+    }
+}
